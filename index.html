@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<style>
+
+  #app {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 2%;
+  }
+
+  .nav {
+    width: 27%;
+  }
+
+  .mainBlock {
+    width: 67%;
+    padding: 0 1%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .searchBlock {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .inputBtn, .searchBlock input {
+    height: 20px;
+  }
+
+  .inputBtn {
+    width: 60%;
+  }
+
+  .searchBlock input {
+    width: 70%;
+  }
+
+  .btn {
+    width: 24%;
+    height: 26px;
+  }
+
+  .txtMainBlock {
+    width: 30%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .content {
+    width: 100%;
+    height: 450px;
+    border: 1px solid black;
+    border-radius: 3px;
+    font-size: 50px;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow-y: scroll;
+  }
+
+  .content div {
+    text-align: center;
+  }
+
+  .linkBlock {
+    width: 100%;
+    height: 200px;
+    margin-top: 10px;
+    border-radius: 3px;
+    overflow: scroll;
+  }
+
+  ul {
+    padding: 0;
+    margin: 0;
+  }
+
+  ul li {
+    list-style: none;
+    width: 100%;
+    height: 30px;
+    border: 1px solid black;
+    border-radius: 3px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  ul li:hover {
+    cursor: pointer;
+    background-color: rgb(69, 38, 219, 0.3);
+    transition: all 0.2s ease-out;
+  }
+
+  h4 {
+    margin: 5px 10px;
+  }
+
+  .content .entities li {
+    margin-top: 10px;
+    border: none;
+    font-size: 20px;
+  }
+
+
+</style>
+<body>
+  <div id="app">
+
+    <div class="nav">
+      <ul class="tabs" @click="choiseFilm">
+        <li v-for="film in films">{{ film.title }}</li>
+        <li v-for="attribute in attributes"></li>
+      </ul>
+    </div>
+
+    <div class="mainBlock">
+
+      <div class="searchBlock">
+        <form class="inputBtn" @submit.prevent="submit">
+          <input type="text" v-model="description">
+          <button type="submit" name="button" class="btn" :disabled="!valid"  @click="clianerName"> Поиск </button>
+        </form>
+        <div class="txtMainBlock" v-html="message"></div>
+      </div>
+
+      <div class="content" :style="cleanFilm || nameFilm || allFilm || allObj ? {background: 'linear-gradient' + '(' + 90 + 'deg, #c' + 380 + 'cc' + ' ' + 0 + '%, #' + 386 + 'aee ' + 90.48 + '%)'} : {background: 'white'}" @click="show = !show">
+        <div class="" v-bind="filmTitle">{{ cleanFilm }}</div>
+        <div class="">
+          <ul class="entities">
+            <li v-for="allFilm in allFilms">{{ allFilm.title }}</li>
+          </ul>
+        </div>
+        <div class="">
+          <ul class="entities">
+            <li v-for="allObj in allObjs">{{ allObj.name }}</li>
+          </ul>
+        </div>
+        <div v-html="nameFilm">{{ nameFilm }}</div>
+      </div>
+
+      <div class="linkBlock" :style="{border: 1 + 'px' + ' solid black'}">
+        <div v-if="show">
+          <h4>CHARACTERS&#58;</h4>
+          <ul>
+            <ol v-for="people in peoples">
+              Ссылки на персоны&#58;
+              <a href="#">{{ people }}</a>
+            </ol>
+          </ul>
+
+          <h4>STARSHIPS&#58;</h4>
+          <ul>
+            <ol v-for="starship in starships">
+              Ссылки на корабли&#58;
+              <a href="#">{{ starship }}</a>
+            </ol>
+          </ul>
+
+          <h4>PLANETS&#58;</h4>
+          <ul>
+            <ol v-for="allplanet in allplanets">
+              Ссылки на планеты&#58;
+              <a href="#">{{ allplanet }}</a>
+            </ol>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+<script type="module">
+  import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js'
+</script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+
+  var app = new Vue({
+    el: '#app',
+
+    data: {
+      message: 'Введите общий запрос',
+      description: '',
+      attributes: ['', '', '', '', '', '', '', ''],
+      films: [],
+      peoples: [],
+      people: '',
+      starships: [],
+      starship: '',
+      allplanets: [],
+      allplanet: '',
+      show: false,
+      url: {
+        films: 'https://swapi.dev/api/films',
+        planets: 'https://swapi.dev/api/planets',
+        peoples: 'https://swapi.dev/api/people',
+        starships: 'https://swapi.dev/api/starships'
+      },
+      filmTitle: '',
+      filmTitles: [],
+      allFilms: [],
+      allObjs: [],
+      addFilm: '',
+      nameFilms: [],
+      nameFilm: '',
+      cleanFilm: '',
+      allFilm: '',
+      allObj: '',
+      parent: '',
+      target: '',
+      e: ''
+    },
+
+
+
+    created: function () {
+      axios.get(this.url.films).then((response) => {
+        console.log(response.data.results);
+        this.films = response.data.results;
+      });
+    },
+
+    methods: {
+
+      submit: function() {
+
+        const filmTitle = {
+          description: this.description.trim(),
+          id: Date.now().toString()
+        }
+        this.description = '',
+        this.addFilm = this.filmTitles.push(filmTitle),
+        console.log(this.filmTitles)
+      },
+
+      clianerName: function() {
+        this.message = 'Сущности:',
+        this.nameFilm = '',
+        this.peoples = [],
+        this.starships = [],
+        this.allplanets = [],
+        this.allObjs = []
+
+        if(this.description === 'film' || this.description === 'films' || this.description === 'фильм' ||this.description === 'фильмы') {
+            axios.get(this.url.films).then((response) => {
+              console.log(response.data.results);
+              this.allFilms = response.data.results;
+              this.cleanFilm = '';
+              this.allObj = '';
+              this.allFilm = response.data.results;
+            });
+        } else (
+          this.allFilms = '',
+          this.allObjs = '',
+          this.cleanFilm = this.description)
+
+
+        if(this.description === 'planet' || this.description === 'planets' || this.description === 'планета' ||this.description === 'планеты') {
+            axios.get(this.url.planets).then((response) => {
+              console.log(response.data.results);
+              this.allObjs = response.data.results;
+              this.cleanFilm = '';
+              this.allFilm = '';
+              this.allObj = response.data.results;
+            });
+        } else (
+          this.allFilms = '',
+          this.allObjs = '',
+          this.cleanFilm = this.description)
+
+        if(this.description === 'people' || this.description === 'peoples' || this.description === 'персона' ||this.description === 'персоны') {
+            axios.get(this.url.peoples).then((response) => {
+              console.log(response.data.results);
+              this.allObjs = response.data.results;
+              this.cleanFilm = '';
+              this.allFilm = '';
+              this.allObj = response.data.results;
+            });
+        } else (
+          this.allFilms = '',
+          this.allObjs = '',
+          this.cleanFilm = this.description)
+
+        if(this.description === 'starship' || this.description === 'starships' || this.description === 'корабль' ||this.description === 'корабли') {
+            axios.get(this.url.starships).then((response) => {
+              console.log(response.data.results);
+              this.allObjs = response.data.results;
+              this.cleanFilm = '';
+              this.allFilm = '';
+              this.allObj = response.data.results;
+            });
+        } else (
+          this.allFilms = '',
+          this.allObjs = '',
+          this.cleanFilm = this.description)
+      },
+
+      choiseFilm: function(event) {
+        this.message = 'Название фильма и ссылки его на сущности:',
+
+        axios.get(this.url.films).then((response) => {
+
+          this.cleanFilm = '';
+          this.allFilms = '';
+          this.allObjs = '';
+
+          this.parent = document.getElementsByClassName("tabs")[0];
+          this.e = event;
+          this.target = event.target;
+          for (i = -1; i < this.parent.children.length; i++) {
+            if(this.parent.children[i] == this.target) {
+              return console.log(response.data.results[i].title);
+            } else (this.nameFilm = '',
+            this.peoples = '',
+            this.starships = '',
+            this.allplanets = '')
+            this.nameFilm = response.data.results[i+1].title;
+            this.peoples = response.data.results[i+1].characters;
+            this.starships = response.data.results[i+1].characters;
+            this.allplanets = response.data.results[i+1].characters;
+            console.log(this.peoples);
+            console.log(this.starships);
+            console.log(this.allplanets);
+          }
+        });
+      }
+
+    },
+
+    computed: {
+      valid: function() {
+        return this.description.trim()
+      }
+    },
+  })
+
+</script>
+
+
+</body>
+</html>
